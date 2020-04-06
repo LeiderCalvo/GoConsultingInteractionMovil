@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoConsulting</title>
+    <script src="https://cdn.jsdelivr.net/npm/p5@0.10.2/lib/p5.js"></script>
+</head>
+    
+<body id="body" style="margin: 0;">
+<script>
+    let sketch = ( app ) => {
+        disciplinas = [
+            {name: 'Account Manager', description: 'Generally responsible for managing and handling messages in both directions, such as social media, content creation, etc.', size: 3, color: ' #E34651', svg: 'card'},
+            {name: 'Android Developer', description: "Responsible for developing applications for devices powered by the Android operating system, like Smartphones, Tablets, Smartwatches, etc.", size: 3, color: '#7C33FF', svg: 'android'},
+            {name: 'iOS Developer', description: "Responsible for developing applications for mobile devices powered by Apple's iOS operating system, like iPhones and iPads.", size: 3, color: '#5ED4F7', svg: 'apple'},
+            {name: 'Multimedia Engenier', description: 'Engineering field that combines design and multimedia with Computer, Electronic and Telecommunications engineering.', size: 3, color: '#E34651', svg: 'conection'},
+            {name: 'Copywriter', description: 'A copywriter is someone who writes for the internet. They create informative content like websites, emails, advertisements, captions and more.', size: 3, color: '#7C33FF', svg: 'pen'},
+            {name: 'UX/UI expert', description: 'The UX designer ensures a product makes sense to the user by creating a path that logically flows from one step to the next. UI ensures each page visually communicates that path.', size: 3, color: '#5ED4F7', svg: 'red'},
+            {name: 'Database Engenier', description: 'Creates and manages databases, including anything from building a new database to meet a specific need, and maintain them to ensure everything remains fully functional.', size: 3, color: '#E34651', svg: 'db'},
+            {name: 'Digital Marketing Strategist', description: "Develops the strategy used in marketing a company's product or service online, utilizing techniques as digital advertising, social media, analytics, e-mail marketing, SEO, etc.", size: 3, color: '#7C33FF', svg: 'voice'},
+            {name: 'Web Designer', description: 'Builds or redesign websites with technical and creative skills. Has the ability to understand what is needed to make a website functional, appealing and easy to use.', size: 3, color: '#5ED4F7', svg: 'mouse'},
+            {name: 'Front-end/Back-end\nDevelopers', description: `The front-end is everything visible by the user, including design and interface. The back-end refers to everything the user can't see, like algorithms, databases and servers.`, size: 3, color: '#7C33FF', svg: 'html'}
+        ];
+
+        particles = [];
+        fontRegular = null, fontBold= null;
+        
+        INTERVALTIME = 3000;
+        interval = null;
+        autoIndex = 0;
+
+        app.preload = () => {
+            fontRegular = app.loadFont('assets/Poppins-Regular.ttf');
+            fontBold = app.loadFont('assets/Poppins-Bold.ttf');
+        }
+
+        app.setup = () => {
+            let cnv = app.createCanvas(400, 550);
+            cnv.parent('body');
+
+            disciplinas.map((elem, i) => {
+                let pos = app.createVector(0,1);
+                pos.rotate(((2*app.PI)/disciplinas.length)*i);
+                particles.push(new Particle(pos, elem.size, elem.color, elem.svg, app));
+            });
+
+            app.imageMode(app.CENTER);
+            app.textAlign(app.CENTER, app.CENTER);
+            app.textSize(14);
+
+            interval = setInterval( incrementInterval, INTERVALTIME);
+        }
+
+        function incrementInterval(){
+            particles.map(elem => elem.setAutoHover(false));
+            autoIndex + 1 === disciplinas.length ? autoIndex = 0 : autoIndex += 1;
+        }
+
+        app.draw = () => {
+            app.background('#fff');
+            app.push();
+            app.translate(app.width / 2, (app.height / 2)-90);
+
+            particles.map( (elem, i) => {
+                elem.paint();
+                elem.unHover();
+            });
+
+            userAction();
+            app.pop();
+        }
+
+        function userAction() {
+            let index = particles.findIndex( part => part.onHover === true );
+            if( index !== -1){
+                particles[autoIndex].setAutoHover(false);
+                clearInterval(interval);
+                interval = null;
+                paintText(index);
+                return;
+            }else{
+                //app.textFont(fontRegular);
+                //app.text('¡Haz click en los iconos  para conocer a tu equipo!', 0, 0);
+                particles[autoIndex].setAutoHover(true);
+                if(interval === null)interval = setInterval(incrementInterval, INTERVALTIME);
+                paintText(autoIndex);
+                particles.map( elem => {elem.hover(); elem.move();} );
+            }
+        }
+
+        function paintText(index) {
+            app.fill(0);
+            app.textFont(fontBold);
+            //app.text(disciplinas[index].name, 0, 200);
+            app.text(disciplinas[index].name, 0, 0);
+            app.textFont(fontRegular);
+            //app.text(disciplinas[index].description, -100, -170, 200, 350);
+            app.text(disciplinas[index].description, -180, 50, 370, 350);
+        }
+
+        class Particle {
+            constructor(pos, r, color, svg, app){
+                this.app = app;
+                this.color = color;
+                pos.mult(240*.6);
+                this.pos = pos;
+                this.r = app.map(r, 1,3, 30, 65);
+                this.speed = 0.003*.75;
+                this.onHover = false;
+                this.svg = app.loadImage("assets/"+svg+".svg");
+                this.autoHover = false;
+            }
+
+            paint() {
+                app.noStroke();
+                app.fill( this.onHover || this.autoHover? this.color : '#2B303A');
+                app.circle(this.pos.x,this.pos.y,this.r);
+                app.image(this.svg, this.pos.x,this.pos.y);
+            }
+
+            move() {
+                !this.onHover && this.pos.rotate(this.speed);
+            }
+
+            hover() {
+                if(app.dist(this.pos.x, this.pos.y, app.mouseX-(app.width / 2), app.mouseY-((app.height / 2)-90)) <= this.r/2) this.onHover = true;
+            }
+
+            unHover() {
+                if(app.dist(this.pos.x, this.pos.y, app.mouseX-(app.width / 2), app.mouseY-((app.height / 2)-90)) >= this.r/2) this.onHover = false;
+            }
+
+            setAutoHover(val){
+                this.autoHover = val;
+            }
+        }
+    }
+    let myP5 = new p5(sketch);
+</script>
+</body>
+</html>
